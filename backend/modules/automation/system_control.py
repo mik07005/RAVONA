@@ -26,3 +26,14 @@ def open_notepad():
 def get_time():
     current_time = datetime.now().strftime("%I:%M %p")
     return f"The current time is {current_time}"
+
+
+# Command Registry
+COMMANDS = {
+    "youtube": open_youtube,
+    "google": open_google,
+    "vs code": open_vs_code,
+    "vscode": open_vs_code,
+    "notepad": open_notepad,
+    "time": get_time
+}

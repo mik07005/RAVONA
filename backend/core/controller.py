@@ -1,34 +1,40 @@
+from rapidfuzz import fuzz
+
 from ai.ai_brain import generate_response
 
-from modules.automation.system_control import (
-    open_youtube,
-    open_google,
-    open_vs_code,
-    open_notepad,
-    get_time
-)
+from modules.automation.system_control import COMMANDS
+
+
+def detect_command(user_input):
+
+    user_input = user_input.lower()
+
+    best_match = None
+    highest_score = 0
+
+    for command in COMMANDS.keys():
+
+        score = fuzz.partial_ratio(user_input, command)
+
+        if score > highest_score:
+            highest_score = score
+            best_match = command
+
+    # Threshold
+    if highest_score >= 70:
+        return best_match
+
+    return None
 
 
 def process_input(user_input):
 
-    command = user_input.lower()
+    detected_command = detect_command(user_input)
 
-    # Automation Commands
-    if "open youtube" in command:
-        return open_youtube()
+    if detected_command:
 
-    elif "open google" in command:
-        return open_google()
+        action = COMMANDS[detected_command]
 
-    elif "open vs code" in command:
-        return open_vs_code()
+        return action()
 
-    elif "open notepad" in command:
-        return open_notepad()
-
-    elif "time" in command:
-        return get_time()
-
-    # AI Response
-    else:
-        return generate_response(user_input)
+    return generate_response(user_input)
