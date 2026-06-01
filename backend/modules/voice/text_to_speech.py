@@ -17,7 +17,7 @@ def speak(text):
 
     text = clean_text(text)
 
-    print(f"AURA X: {text}")
+    print(f"NOVA : {text}")
 
     engine = pyttsx3.init()
 

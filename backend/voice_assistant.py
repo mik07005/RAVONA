@@ -3,6 +3,8 @@ import time
 from modules.voice.speech_to_text import listen
 from modules.voice.text_to_speech import speak
 
+from modules.voice.wake_word import wait_for_wake_word
+
 from core.controller import process_input
 
 
@@ -19,34 +21,58 @@ STOP_COMMANDS = [
     "talk to you later",
     "catch you later",
     "that's all",
-    "thank you that's all"
+    "that's it",
+    "thank you that's all",
+    "i'm done",
+    "we are done",
+    "thank you that's it"
 ]
 
 
 while True:
 
-    user_input = listen()
+    # -------------------------
+    # Sleep Mode
+    # -------------------------
 
-    if not user_input:
-        continue
+    print("💤 Waiting for wake word...")
 
-    if any(
-        cmd in user_input.lower()
-        for cmd in STOP_COMMANDS
-    ):
+    wait_for_wake_word()
 
-        speak(
-            "Goodbye. See you soon and have a great day."
-        )
+    speak("Yes?")
 
-        break
+    print("🟢 Conversation Mode Activated")
 
-    print("🤔 Thinking...")
+    # -------------------------
+    # Conversation Mode
+    # -------------------------
 
-    response = process_input(user_input)
+    while True:
 
-    print("🗣️ Speaking...")
+        user_input = listen()
 
-    speak(response)
+        if not user_input:
+            continue
 
-    time.sleep(1)
+        if any(
+            cmd in user_input.lower()
+            for cmd in STOP_COMMANDS
+        ):
+
+            speak(
+                "Goodbye. See you soon and have a great day."
+            )
+
+            print("💤 Returning to sleep mode...")
+
+            break
+
+        print("🤔 Thinking...")
+
+        response = process_input(user_input)
+
+        print("🗣️ Speaking...")
+
+        speak(response)
+
+        time.sleep(1)
