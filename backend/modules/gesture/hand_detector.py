@@ -10,14 +10,12 @@ class HandDetector:
 
         self.hands = self.mp_hands.Hands(
             static_image_mode=False,
-            max_num_hands=1,
+            max_num_hands=2,
             min_detection_confidence=0.7,
             min_tracking_confidence=0.7
         )
 
         self.mp_draw = mp.solutions.drawing_utils
-
-        self.tip_ids = [4, 8, 12, 16, 20]
 
     def detect_hands(self, frame):
 
@@ -28,11 +26,13 @@ class HandDetector:
 
         self.results = self.hands.process(rgb)
 
-        landmarks = []
+        all_hands = []
 
         if self.results.multi_hand_landmarks:
 
-            for hand_landmarks in self.results.multi_hand_landmarks:
+            for hand_index, hand_landmarks in enumerate(
+                self.results.multi_hand_landmarks
+            ):
 
                 self.mp_draw.draw_landmarks(
                     frame,
@@ -40,7 +40,23 @@ class HandDetector:
                     self.mp_hands.HAND_CONNECTIONS
                 )
 
+                hand_type = (
+                    self.results.multi_handedness[
+                        hand_index
+                    ]
+                    .classification[0]
+                    .label
+                )
+
+                # Webcam feed is mirrored
+                if hand_type == "Right":
+                    hand_type = "Left"
+                else:
+                    hand_type = "Right"
+
                 h, w, c = frame.shape
+
+                hand_landmarks_list = []
 
                 for idx, lm in enumerate(
                     hand_landmarks.landmark
@@ -49,33 +65,88 @@ class HandDetector:
                     cx = int(lm.x * w)
                     cy = int(lm.y * h)
 
-                    landmarks.append(
+                    hand_landmarks_list.append(
                         [idx, cx, cy]
                     )
 
-        return frame, landmarks
+                hand_data = {
+                    "type": hand_type,
+                    "landmarks": hand_landmarks_list
+                }
 
-    def fingers_up(self, landmarks):
+                all_hands.append(hand_data)
 
-        fingers = []
+        return frame, all_hands
+
+    def fingers_up(self, hand):
+
+        landmarks = hand["landmarks"]
+        hand_type = hand["type"]
 
         if not landmarks:
             return []
 
+        fingers = []
+
+        # ------------------------
         # Thumb
+        # ------------------------
 
-        if landmarks[4][1] > landmarks[3][1]:
-            fingers.append(1)
-        else:
-            fingers.append(0)
+        thumb_tip_x = landmarks[4][1]
+        index_mcp_x = landmarks[5][1]
 
-        # Other fingers
+        if hand_type == "Right":
 
-        for tip in [8, 12, 16, 20]:
-
-            if landmarks[tip][2] < landmarks[tip - 2][2]:
+            if thumb_tip_x < index_mcp_x:
                 fingers.append(1)
             else:
                 fingers.append(0)
+
+        else:
+
+            if thumb_tip_x > index_mcp_x:
+                fingers.append(1)
+            else:
+                fingers.append(0)
+
+        # ------------------------
+        # Index
+        # ------------------------
+
+        fingers.append(
+            1 if landmarks[8][2]
+            < landmarks[6][2]
+            else 0
+        )
+
+        # ------------------------
+        # Middle
+        # ------------------------
+
+        fingers.append(
+            1 if landmarks[12][2]
+            < landmarks[10][2]
+            else 0
+        )
+
+        # ------------------------
+        # Ring
+        # ------------------------
+
+        fingers.append(
+            1 if landmarks[16][2]
+            < landmarks[14][2]
+            else 0
+        )
+
+        # ------------------------
+        # Pinky
+        # ------------------------
+
+        fingers.append(
+            1 if landmarks[20][2]
+            < landmarks[18][2]
+            else 0
+        )
 
         return fingers
