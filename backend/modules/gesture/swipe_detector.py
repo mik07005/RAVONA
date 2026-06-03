@@ -2,46 +2,35 @@ class SwipeDetector:
 
     def __init__(self):
 
-        self.previous_x = None
-        self.previous_y = None
+        self.start_x = None
+        self.start_y = None
 
-        self.cooldown = 0
+    def arm(self, x, y):
 
-    def detect_swipe(self, x, y):
+        self.start_x = x
+        self.start_y = y
 
-        if self.previous_x is None:
+    def detect_swipe(self, current_x, current_y):
 
-            self.previous_x = x
-            self.previous_y = y
-
+        if self.start_x is None:
             return None
 
-        dx = x - self.previous_x
-        dy = y - self.previous_y
+        dx = current_x - self.start_x
 
-        self.previous_x = x
-        self.previous_y = y
+        THRESHOLD = 150
 
-        if self.cooldown > 0:
-
-            self.cooldown -= 1
-            return None
-
-        THRESHOLD = 120
+        # Final Navigation Mapping
 
         if dx > THRESHOLD:
 
-            self.cooldown = 20
-            return "RIGHT"
+            self.start_x = None
+
+            return "NEXT_WINDOW"
 
         elif dx < -THRESHOLD:
 
-            self.cooldown = 20
-            return "LEFT"
+            self.start_x = None
 
-        elif dy < -THRESHOLD:
-
-            self.cooldown = 20
-            return "UP"
+            return "PREVIOUS_WINDOW"
 
         return None

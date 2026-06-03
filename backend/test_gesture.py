@@ -1,12 +1,9 @@
 import cv2
+import time
 
 from modules.gesture.hand_detector import HandDetector
 from modules.gesture.swipe_detector import SwipeDetector
-
-from modules.gesture.gesture_actions import (
-    previous_window,
-    next_window
-)
+from modules.gesture.open_palm_detector import OpenPalmDetector
 
 
 cap = cv2.VideoCapture(0)
@@ -14,6 +11,12 @@ cap = cv2.VideoCapture(0)
 detector = HandDetector()
 
 gesture_detector = SwipeDetector()
+
+palm_detector = OpenPalmDetector()
+
+navigation_mode = False
+
+palm_start_time = None
 
 gesture_text = ""
 
@@ -31,12 +34,50 @@ while True:
 
         landmarks = hand["landmarks"]
 
+        fingers = detector.fingers_up(
+            hand
+        )
+
+        # --------------------
+        # Open Palm Detection
+        # --------------------
+
+        if palm_detector.is_open_palm(
+            fingers
+        ):
+
+            if palm_start_time is None:
+
+                palm_start_time = time.time()
+
+            elif (
+                time.time() - palm_start_time
+            ) > 0.5 and not navigation_mode:
+
+                navigation_mode = True
+
+                gesture_text = (
+                    "Navigation Mode"
+                )
+
+                print(
+                    "Navigation Mode Activated"
+                )
+
+        else:
+
+            palm_start_time = None
+
+        # --------------------
+        # Tracking Point
+        # --------------------
+
         if len(landmarks) > 12:
 
             index_x = landmarks[8][1]
-            index_y = landmarks[8][2]
-
             middle_x = landmarks[12][1]
+
+            index_y = landmarks[8][2]
             middle_y = landmarks[12][2]
 
             track_x = (
@@ -55,28 +96,49 @@ while True:
                 cv2.FILLED
             )
 
-            gesture = gesture_detector.detect_swipe(
-                track_x,
-                track_y
-            )
+            if navigation_mode:
 
-            if gesture:
+                if (
+                    gesture_detector.start_x
+                    is None
+                ):
 
-                gesture_text = (
-                    f"Swipe {gesture}"
+                    gesture_detector.arm(
+                        track_x,
+                        track_y
+                    )
+
+                gesture = (
+                    gesture_detector.detect_swipe(
+                        track_x,
+                        track_y
+                    )
                 )
 
-                print(
-                    gesture_text
-                )
+                if gesture:
 
-                if gesture == "LEFT":
+                    gesture_text = (
+                        gesture.replace(
+                            "_",
+                            " "
+                        )
+                    )
 
-                    previous_window()
+                    print(
+                        gesture_text
+                    )
 
-                elif gesture == "RIGHT":
+                    navigation_mode = False
 
-                    next_window()
+        cv2.putText(
+            frame,
+            f"Navigation: {navigation_mode}",
+            (20, 40),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.8,
+            (0, 255, 0),
+            2
+        )
 
     if gesture_text:
 
@@ -91,7 +153,7 @@ while True:
         )
 
     cv2.imshow(
-        "AURA X Gesture Test",
+        "NOVA Gesture Test",
         frame
     )
 

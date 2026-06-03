@@ -48,7 +48,7 @@ class HandDetector:
                     .label
                 )
 
-                # Webcam feed is mirrored
+                # Webcam mirrored
                 if hand_type == "Right":
                     hand_type = "Left"
                 else:
@@ -64,9 +64,10 @@ class HandDetector:
 
                     cx = int(lm.x * w)
                     cy = int(lm.y * h)
+                    cz = lm.z
 
                     hand_landmarks_list.append(
-                        [idx, cx, cy]
+                        [idx, cx, cy, cz]
                     )
 
                 hand_data = {
@@ -88,30 +89,22 @@ class HandDetector:
 
         fingers = []
 
-        # ------------------------
-        # Thumb
-        # ------------------------
-
         thumb_tip_x = landmarks[4][1]
         index_mcp_x = landmarks[5][1]
 
         if hand_type == "Right":
 
-            if thumb_tip_x < index_mcp_x:
-                fingers.append(1)
-            else:
-                fingers.append(0)
+            fingers.append(
+                1 if thumb_tip_x < index_mcp_x
+                else 0
+            )
 
         else:
 
-            if thumb_tip_x > index_mcp_x:
-                fingers.append(1)
-            else:
-                fingers.append(0)
-
-        # ------------------------
-        # Index
-        # ------------------------
+            fingers.append(
+                1 if thumb_tip_x > index_mcp_x
+                else 0
+            )
 
         fingers.append(
             1 if landmarks[8][2]
@@ -119,29 +112,17 @@ class HandDetector:
             else 0
         )
 
-        # ------------------------
-        # Middle
-        # ------------------------
-
         fingers.append(
             1 if landmarks[12][2]
             < landmarks[10][2]
             else 0
         )
 
-        # ------------------------
-        # Ring
-        # ------------------------
-
         fingers.append(
             1 if landmarks[16][2]
             < landmarks[14][2]
             else 0
         )
-
-        # ------------------------
-        # Pinky
-        # ------------------------
 
         fingers.append(
             1 if landmarks[20][2]
