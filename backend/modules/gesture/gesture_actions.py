@@ -1,20 +1,20 @@
 import pyautogui
 
 
+def next_window():
+
+    pyautogui.hotkey(
+        "alt",
+        "tab"
+    )
+
+
 def previous_window():
 
     pyautogui.hotkey(
         "alt",
         "shift",
-        "esc"
-    )
-
-
-def next_window():
-
-    pyautogui.hotkey(
-        "alt",
-        "esc"
+        "tab"
     )
 
 
