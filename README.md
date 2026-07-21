@@ -1,53 +1,134 @@
-# RAVONA AI Assistant
+# 🤖 RAVONA AI Assistant
 
-RAVONA stands for:
+**RAVONA** stands for:
 
-**Real-time Autonomous Virtual Operational Neural Assistant**
+> **Real-time Autonomous Virtual Operational Neural Assistant**
 
-RAVONA is a modular AI desktop assistant designed to perform intelligent conversations, automate tasks, and assist users through voice and text interaction.
+RAVONA is a modular AI-powered desktop assistant designed to perform intelligent conversations, automate tasks, and assist users through voice, gestures, and text interaction.
 
-The project is designed as a long-term evolving AI system with support for advanced capabilities like tool usage, voice interaction, automation, and memory.
+At the heart of RAVONA is **NOVA**, the AI assistant that interacts naturally with users through voice commands and computer vision.
 
-## Planned Features
+---
 
-- AI conversation using Gemini
-- Voice interaction (Speech-to-Text + Text-to-Speech)
+## ✨ Current Features
+
+### 🎙️ Voice Assistant
+- Google Gemini integration
 - Wake word activation
-- Automation tools (open apps, search web, manage files)
+- Conversation mode
+- Sleep mode
+- Context-aware responses
+
+### 🖐️ Gesture Control
+- Hand tracking using MediaPipe
+- Open Palm gesture detection
+- Navigation Mode
+- Next Window gesture
+- Previous Window gesture
+- Task View gesture
+- Gesture cooldown system
+
+### 🖥️ Desktop Automation
+- Window navigation
+- Windows Task View integration
+
+---
+
+## 🚀 Planned Features
+
+- Voice interaction (Speech-to-Text + Text-to-Speech)
+- Modern desktop UI
+- Cursor control using hand gestures
+- File management and automation
+- Web search tools
 - Long-term memory system
 - AI agents for task planning
-- Modern desktop UI
 - Knowledge retrieval (RAG)
+- Vision understanding
+- Smart desktop automation
 
-## Tech Stack
+---
 
-Backend:
+## 🛠️ Tech Stack
+
+### Backend
 - Python
 - FastAPI
-- Gemini API
+- Google Gemini API
 
-Frontend:
+### Computer Vision
+- OpenCV
+- MediaPipe
+
+### Automation
+- PyAutoGUI
+
+### Frontend *(Planned)*
 - React
-- TailwindCSS
-- Electron / Tauri (planned)
+- Tailwind CSS
+- Electron / Tauri
 
-AI Components:
+### AI Components
 - Gemini LLM
 - Whisper (Speech Recognition)
 - ElevenLabs (Voice Output)
 
-## Project Structure
+---
+
+## 📂 Project Structure
+
+```
 ravona/
 │
-├── backend
+├── backend/
+│   ├── modules/
+│   │   ├── gesture/
+│   │   ├── voice/
+│   │   └── ...
+│   │
+│   ├── app.py
+│   └── test_gesture.py
 │
-├── frontend
+├── frontend/        # Planned
 │
 └── README.md
+```
 
+---
 
-## Vision
+## 📈 Current Progress
 
-RAVONA is intended to evolve into a fully capable personal AI assistant that can understand users, perform tasks autonomously, and integrate with multiple systems.
+| Module | Status |
+|---------|--------|
+| Gemini Integration | ✅ Complete |
+| Wake Word | ✅ Complete |
+| Conversation Mode | ✅ Complete |
+| Sleep Mode | ✅ Complete |
+| Gesture Navigation | ✅ Complete |
+| Window Automation | ✅ Complete |
+| Cursor Control | 🚧 In Progress |
+| Vision Module | 📅 Planned |
+| Memory System | 📅 Planned |
+| Desktop UI | 📅 Planned |
 
-This project will continuously evolve with new features and improvements.
+---
+
+## 🎯 Vision
+
+RAVONA aims to evolve into a fully capable personal AI assistant capable of understanding voice, vision, gestures, and user intent while autonomously performing tasks across multiple systems.
+
+NOVA serves as the intelligent interface between the user and the RAVONA platform, providing a natural, hands-free computing experience.
+
+---
+
+## 👨‍💻 Developer
+
+**Mohammed Intekhab Khan**
+
+B.Tech CSE (AI & ML)
+
+VIT-AP University
+
+---
+
+⭐ If you like this project, consider giving it a star on GitHub!
