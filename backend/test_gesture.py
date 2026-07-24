@@ -1,3 +1,8 @@
+# NOTE:
+# This is a corrected TEMPLATE of test_gesture.py showing the
+# proper placement of Cursor Mode logic.
+# Cursor movement is intentionally NOT implemented yet.
+
 import cv2
 import time
 
@@ -5,7 +10,9 @@ from modules.gesture.hand_detector import HandDetector
 from modules.gesture.swipe_detector import SwipeDetector
 from modules.gesture.open_palm_detector import OpenPalmDetector
 from modules.gesture.collapse_detector import CollapseDetector
-
+from modules.gesture.cursor_detector import CursorDetector
+from modules.gesture.mode_manager import ModeManager
+from modules.gesture.gesture_engine import GestureEngine
 from modules.gesture.gesture_actions import (
     next_window,
     previous_window,
@@ -22,22 +29,17 @@ palm_detector = OpenPalmDetector()
 
 collapse_detector = CollapseDetector()
 
-navigation_mode = False
+cursor_detector = CursorDetector()
 
-palm_start_time = None
+manager = ModeManager()
 
-collapse_start_time = None
+engine = GestureEngine(detector, manager)
 
 gesture_text = ""
-
-# --------------------
-# Gesture Cooldown
-# --------------------
 
 last_gesture_time = 0
 
 GESTURE_COOLDOWN = 1.0
-
 
 while True:
 
@@ -50,46 +52,19 @@ while True:
 
     frame, hands = detector.detect_hands(frame)
 
+    engine.process(frame, hands)
+
     for hand in hands:
 
         landmarks = hand["landmarks"]
+        fingers = detector.fingers_up(hand)
 
-        fingers = detector.fingers_up(
-            hand
-        )
+        
 
-        # --------------------
-        # Open Palm Detection
-        # --------------------
-
-        if palm_detector.is_open_palm(
-            fingers
-        ):
-
-            if palm_start_time is None:
-
-                palm_start_time = time.time()
-
-            elif (
-                time.time() - palm_start_time
-            ) > 0.5 and not navigation_mode:
-
-                navigation_mode = True
-
-                gesture_text = (
-                    "Navigation Mode"
-                )
-
-                print(
-                    "Navigation Mode Activated"
-                )
-
-        else:
-
-            palm_start_time = None
+        
 
         # --------------------
-        # Tracking Point
+        # TRACKING POINT
         # --------------------
 
         if len(landmarks) > 12:
@@ -100,13 +75,8 @@ while True:
             index_y = landmarks[8][2]
             middle_y = landmarks[12][2]
 
-            track_x = (
-                index_x + middle_x
-            ) // 2
-
-            track_y = (
-                index_y + middle_y
-            ) // 2
+            track_x = (index_x + middle_x) // 2
+            track_y = (index_y + middle_y) // 2
 
             cv2.circle(
                 frame,
@@ -116,135 +86,83 @@ while True:
                 cv2.FILLED
             )
 
-            # --------------------
-            # Navigation Mode
-            # --------------------
-
-            if navigation_mode:
-
-                # --------------------
-                # Global Cooldown
-                # --------------------
+            if manager.is_navigation():
 
                 if (
-                    current_time
-                    - last_gesture_time
+                    current_time - last_gesture_time
                 ) < GESTURE_COOLDOWN:
-
                     continue
-
-                # --------------------
-                # Five Finger Collapse
-                # --------------------
 
                 if collapse_detector.is_collapsed(
                     landmarks
                 ):
 
-                    if collapse_start_time is None:
-
-                        collapse_start_time = (
-                            time.time()
-                        )
+                    if manager.collapse_timer is None:
+                        manager.collapse_timer = time.time()
 
                     elif (
-                        time.time()
-                        - collapse_start_time
+                        time.time() - manager.collapse_timer
                     ) > 0.5:
 
-                        gesture_text = (
-                            "TASK VIEW"
-                        )
-
-                        print(
-                            "TASK VIEW"
-                        )
+                        gesture_text = "TASK VIEW"
+                        print("TASK VIEW")
 
                         task_view()
 
-                        navigation_mode = False
-
+                        manager.enter_idle()
                         gesture_detector.start_x = None
-
-                        collapse_start_time = None
-
-                        last_gesture_time = (
-                            time.time()
-                        )
+                        manager.reset_collapse_timer()
+                        last_gesture_time = time.time()
 
                         continue
 
                 else:
+                    manager.reset_collapse_timer()
 
-                    collapse_start_time = None
-
-                # --------------------
-                # Arm Swipe Detector
-                # --------------------
-
-                if (
-                    gesture_detector.start_x
-                    is None
-                ):
-
+                if gesture_detector.start_x is None:
                     gesture_detector.arm(
                         track_x,
                         track_y
                     )
 
-                # --------------------
-                # Swipe Detection
-                # --------------------
-
-                gesture = (
-                    gesture_detector.detect_swipe(
-                        track_x,
-                        track_y
-                    )
+                gesture = gesture_detector.detect_swipe(
+                    track_x,
+                    track_y
                 )
 
                 if gesture:
 
-                    gesture_text = (
-                        gesture.replace(
-                            "_",
-                            " "
-                        )
-                    )
+                    gesture_text = gesture.replace("_", " ")
+                    print(gesture_text)
 
-                    print(
-                        gesture_text
-                    )
-
-                    if gesture == (
-                        "NEXT_WINDOW"
-                    ):
-
+                    if gesture == "NEXT_WINDOW":
                         next_window()
 
-                    elif gesture == (
-                        "PREVIOUS_WINDOW"
-                    ):
-
+                    elif gesture == "PREVIOUS_WINDOW":
                         previous_window()
 
-                    navigation_mode = False
-
+                    manager.enter_idle()
                     gesture_detector.start_x = None
-
-                    collapse_start_time = None
-
-                    last_gesture_time = (
-                        time.time()
-                    )
+                    manager.reset_collapse_timer()
+                    last_gesture_time = time.time()
 
         cv2.putText(
             frame,
-            f"Navigation: {navigation_mode}",
+            f"Navigation: {manager.is_navigation()}",
             (20, 40),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.8,
-            (0, 255, 0),
+            (0,255,0),
+            2
+        )
+
+        cv2.putText(
+            frame,
+            f"Cursor: {manager.is_cursor()}",
+            (20,70),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.8,
+            (255,255,0),
             2
         )
 
@@ -253,21 +171,17 @@ while True:
         cv2.putText(
             frame,
             gesture_text,
-            (20, 80),
+            (20,110),
             cv2.FONT_HERSHEY_SIMPLEX,
             1,
-            (0, 255, 0),
+            (0,255,0),
             2
         )
 
-    cv2.imshow(
-        "NOVA Gesture Test",
-        frame
-    )
+    cv2.imshow("NOVA Gesture Test", frame)
 
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
 
 cap.release()
-
 cv2.destroyAllWindows()
