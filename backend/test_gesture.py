@@ -52,7 +52,11 @@ while True:
 
     frame, hands = detector.detect_hands(frame)
 
-    engine.process(frame, hands)
+    engine.process(
+        frame,
+        hands,
+        current_time
+    )
 
     for hand in hands:
 
@@ -63,30 +67,9 @@ while True:
 
         
 
-        # --------------------
-        # TRACKING POINT
-        # --------------------
+        
 
-        if len(landmarks) > 12:
-
-            index_x = landmarks[8][1]
-            middle_x = landmarks[12][1]
-
-            index_y = landmarks[8][2]
-            middle_y = landmarks[12][2]
-
-            track_x = (index_x + middle_x) // 2
-            track_y = (index_y + middle_y) // 2
-
-            cv2.circle(
-                frame,
-                (track_x, track_y),
-                10,
-                (255, 0, 255),
-                cv2.FILLED
-            )
-
-            if manager.is_navigation():
+        if manager.is_navigation():
 
                 if (
                     current_time - last_gesture_time
@@ -119,32 +102,7 @@ while True:
                 else:
                     manager.reset_collapse_timer()
 
-                if gesture_detector.start_x is None:
-                    gesture_detector.arm(
-                        track_x,
-                        track_y
-                    )
-
-                gesture = gesture_detector.detect_swipe(
-                    track_x,
-                    track_y
-                )
-
-                if gesture:
-
-                    gesture_text = gesture.replace("_", " ")
-                    print(gesture_text)
-
-                    if gesture == "NEXT_WINDOW":
-                        next_window()
-
-                    elif gesture == "PREVIOUS_WINDOW":
-                        previous_window()
-
-                    manager.enter_idle()
-                    gesture_detector.start_x = None
-                    manager.reset_collapse_timer()
-                    last_gesture_time = time.time()
+                
 
         cv2.putText(
             frame,

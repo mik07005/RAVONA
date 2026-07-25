@@ -37,9 +37,9 @@ class GestureEngine:
         self.GESTURE_COOLDOWN = 1.0
 
 
-    def process(self, frame, hands):
+    def process(self, frame, hands, current_time):
 
-        current_time = time.time()
+        
 
         for hand in hands:
 
@@ -49,6 +49,11 @@ class GestureEngine:
 
             self.handle_open_palm(fingers)
             self.handle_cursor_mode(fingers)
+            self.handle_navigation(
+                frame,
+                landmarks,
+                current_time
+            )
 
     def handle_open_palm(self, fingers):
 
@@ -100,3 +105,85 @@ class GestureEngine:
 
             self.manager.reset_cursor_timer()
             self.manager.unlock_cursor()
+
+    def calculate_tracking_point(self, landmarks):
+
+        if len(landmarks) <= 12:
+            return None
+
+        index_x = landmarks[8][1]
+        middle_x = landmarks[12][1]
+
+        index_y = landmarks[8][2]
+        middle_y = landmarks[12][2]
+
+        track_x = (index_x + middle_x) // 2
+        track_y = (index_y + middle_y) // 2
+
+        return track_x, track_y
+
+    def check_swipe(self, track_x, track_y, current_time):
+
+        if self.gesture_detector.start_x is None:
+
+            self.gesture_detector.arm(
+                track_x,
+                track_y
+            )
+
+        gesture = self.gesture_detector.detect_swipe(
+            track_x,
+            track_y
+        )
+
+        if not gesture:
+            return
+
+        self.gesture_text = gesture.replace("_", " ")
+
+        print(self.gesture_text)
+
+        if gesture == "NEXT_WINDOW":
+            next_window()
+
+        elif gesture == "PREVIOUS_WINDOW":
+            previous_window()
+
+        self.manager.enter_idle()
+
+        self.gesture_detector.start_x = None
+
+        self.last_gesture_time = current_time
+
+    def handle_navigation(
+        self,
+        frame,
+        landmarks,
+        current_time
+    ):
+        tracking_point = self.calculate_tracking_point(landmarks)
+
+        if tracking_point is None:
+            return
+
+        track_x, track_y = tracking_point
+
+        cv2.circle(
+            frame,
+            (track_x, track_y),
+            10,
+            (255, 0, 255),
+            cv2.FILLED
+        )
+        if not self.manager.is_navigation():
+            return
+
+        if (current_time - self.last_gesture_time) < self.GESTURE_COOLDOWN:
+            return
+        
+        self.check_swipe(
+            track_x,
+            track_y,
+            current_time
+        )
+        
