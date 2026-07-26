@@ -155,6 +155,40 @@ class GestureEngine:
 
         self.last_gesture_time = current_time
 
+    def check_collapse(self, landmarks, current_time):
+
+        if self.collapse_detector.is_collapsed(landmarks):
+
+            if self.manager.collapse_timer is None:
+
+                self.manager.collapse_timer = current_time
+
+            elif (
+                current_time - self.manager.collapse_timer
+            ) > 0.5:
+
+                self.gesture_text = "TASK VIEW"
+
+                print("TASK VIEW")
+
+                task_view()
+
+                self.manager.enter_idle()
+
+                self.gesture_detector.start_x = None
+
+                self.manager.reset_collapse_timer()
+
+                self.last_gesture_time = current_time
+
+                return True
+
+        else:
+
+            self.manager.reset_collapse_timer()
+
+        return False
+
     def handle_navigation(
         self,
         frame,
@@ -179,6 +213,12 @@ class GestureEngine:
             return
 
         if (current_time - self.last_gesture_time) < self.GESTURE_COOLDOWN:
+            return
+
+        if self.check_collapse(
+            landmarks,
+            current_time
+        ):
             return
         
         self.check_swipe(
