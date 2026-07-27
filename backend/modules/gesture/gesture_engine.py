@@ -1,6 +1,7 @@
 import cv2
 import time
 
+from modules.gesture.cursor_controller import CursorController
 from modules.gesture.swipe_detector import SwipeDetector
 from modules.gesture.open_palm_detector import OpenPalmDetector
 from modules.gesture.collapse_detector import CollapseDetector
@@ -19,6 +20,8 @@ class GestureEngine:
     def __init__(self, detector, manager):
 
         self.detector = detector
+
+        self.cursor_controller = CursorController()
 
         self.gesture_detector = SwipeDetector()
 
@@ -54,6 +57,8 @@ class GestureEngine:
                 landmarks,
                 current_time
             )
+            if self.manager.is_cursor():
+                self.cursor_controller.move_cursor(landmarks)
 
     def handle_open_palm(self, fingers):
 
@@ -105,6 +110,8 @@ class GestureEngine:
 
             self.manager.reset_cursor_timer()
             self.manager.unlock_cursor()
+
+        
 
     def calculate_tracking_point(self, landmarks):
 
