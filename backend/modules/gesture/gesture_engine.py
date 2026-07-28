@@ -41,12 +41,42 @@ class GestureEngine:
 
 
     def process(self, frame, hands, current_time):
+        margin_x, margin_y, frame_width, frame_height = (
+            self.cursor_controller.get_active_region(frame)
+        )
 
+        corners = [
+            (margin_x, margin_y),
+            (frame_width - margin_x, margin_y),
+            (margin_x, frame_height - margin_y),
+            (frame_width - margin_x, frame_height - margin_y)
+        ]
+
+        for pt in corners:
+            cv2.circle(frame, pt, 6, (0, 0, 255), -1)
+
+        cv2.rectangle(
+            frame,
+            (margin_x, margin_y),
+            (frame_width - margin_x, frame_height - margin_y),
+            (0, 255, 0),
+            4
+        )
         
 
         for hand in hands:
 
             landmarks = hand["landmarks"]
+
+            index_tip = landmarks[8]
+
+            cv2.circle(
+                frame,
+                (index_tip[1], index_tip[2]),
+                8,
+                (0, 0, 255),
+                cv2.FILLED
+            )
 
             fingers = self.detector.fingers_up(hand)
 
@@ -58,7 +88,25 @@ class GestureEngine:
                 current_time
             )
             if self.manager.is_cursor():
-                self.cursor_controller.move_cursor(landmarks)
+                self.cursor_controller.move_cursor(landmarks, frame)
+        mode = "Idle"
+
+        if self.manager.is_navigation():
+            mode = "Navigation"
+
+        elif self.manager.is_cursor():
+            mode = "Cursor"
+
+        cv2.putText(
+            frame,
+            f"Mode: {mode}",
+            (20, 40),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (0, 255, 0),
+            2
+        )    
+
 
     def handle_open_palm(self, fingers):
 
@@ -110,7 +158,7 @@ class GestureEngine:
 
             self.manager.reset_cursor_timer()
             self.manager.unlock_cursor()
-
+    
         
 
     def calculate_tracking_point(self, landmarks):
