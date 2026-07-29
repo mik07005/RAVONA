@@ -34,25 +34,7 @@ while True:
 
     
 
-    cv2.putText(
-            frame,
-            f"Navigation: {manager.is_navigation()}",
-            (20, 40),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.8,
-            (0,255,0),
-            2
-        )
-
-    cv2.putText(
-            frame,
-            f"Cursor: {manager.is_cursor()}",
-            (20,70),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.8,
-            (255,255,0),
-            2
-        )
+    
 
     if engine.gesture_text:
 

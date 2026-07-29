@@ -1,5 +1,5 @@
 import pyautogui
-
+from config.config_manager import ConfigManager
 
 class CursorController:
 
@@ -12,6 +12,17 @@ class CursorController:
         self.smoothing = 0.2
         self.margin_ratio = 0.25
 
+        # -------- Cursor Calibration --------
+        self.calibrated = False
+
+        self.min_x = None
+        self.max_x = None
+
+        self.min_y = None
+        self.max_y = None
+        self.config = ConfigManager()
+
+        
     def move_cursor(self, landmarks, frame):
 
         frame_height, frame_width = frame.shape[:2]
@@ -25,6 +36,11 @@ class CursorController:
         camera_y = index_tip[2]
 
         camera_x = frame_width - camera_x
+
+        print(
+            f"Raw: ({camera_x}, {camera_y})",
+            end="\r"
+        )
 
         camera_x = max(margin_x, min(camera_x, frame_width - margin_x))
         camera_y = max(margin_y, min(camera_y, frame_height - margin_y))

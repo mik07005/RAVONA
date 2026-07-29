@@ -41,42 +41,10 @@ class GestureEngine:
 
 
     def process(self, frame, hands, current_time):
-        margin_x, margin_y, frame_width, frame_height = (
-            self.cursor_controller.get_active_region(frame)
-        )
-
-        corners = [
-            (margin_x, margin_y),
-            (frame_width - margin_x, margin_y),
-            (margin_x, frame_height - margin_y),
-            (frame_width - margin_x, frame_height - margin_y)
-        ]
-
-        for pt in corners:
-            cv2.circle(frame, pt, 6, (0, 0, 255), -1)
-
-        cv2.rectangle(
-            frame,
-            (margin_x, margin_y),
-            (frame_width - margin_x, frame_height - margin_y),
-            (0, 255, 0),
-            4
-        )
         
-
         for hand in hands:
 
             landmarks = hand["landmarks"]
-
-            index_tip = landmarks[8]
-
-            cv2.circle(
-                frame,
-                (index_tip[1], index_tip[2]),
-                8,
-                (0, 0, 255),
-                cv2.FILLED
-            )
 
             fingers = self.detector.fingers_up(hand)
 
