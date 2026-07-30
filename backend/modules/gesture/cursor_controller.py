@@ -1,6 +1,6 @@
 import pyautogui
 from config.config_manager import ConfigManager
-
+from modules.gesture.calibration_manager import CalibrationManager
 class CursorController:
 
     def __init__(self):
@@ -21,7 +21,7 @@ class CursorController:
         self.min_y = None
         self.max_y = None
         self.config = ConfigManager()
-
+        self.calibration = CalibrationManager()
         
     def move_cursor(self, landmarks, frame):
 

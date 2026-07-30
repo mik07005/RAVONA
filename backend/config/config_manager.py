@@ -8,13 +8,7 @@ class ConfigManager:
 
         self.config_dir = "config"
 
-        self.cursor_file = os.path.join(
-            self.config_dir,
-            "cursor_calibration.json"
-        )
-
         self.create_config_directory()
-        self.create_cursor_config()
 
 
     def create_config_directory(self):
@@ -24,20 +18,34 @@ class ConfigManager:
             os.makedirs(self.config_dir)
 
 
+    def get_file_path(self, filename):
 
-    def create_cursor_config(self):
+        return os.path.join(
+            self.config_dir,
+            filename
+        )
 
-        if os.path.exists(self.cursor_file):
-            return
+    def save_json(self, filename, data):
 
-        default_data = {
-            "calibrated": False,
-            "min_x": None,
-            "max_x": None,
-            "min_y": None,
-            "max_y": None
-        }
+        file_path = self.get_file_path(filename)
 
-        with open(self.cursor_file, "w") as file:
+        with open(file_path, "w") as file:
 
-            json.dump(default_data, file, indent=4)
+            json.dump(data, file, indent=4)
+
+    def load_json(self, filename, default_data):
+
+        file_path = self.get_file_path(filename)
+
+        if not os.path.exists(file_path):
+
+            self.save_json(
+                filename,
+                default_data
+            )
+
+            return default_data
+
+        with open(file_path, "r") as file:
+
+            return json.load(file)
