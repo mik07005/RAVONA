@@ -25,6 +25,9 @@ class CursorController:
         
     def move_cursor(self, landmarks, frame):
 
+        if self.calibration.is_active():
+            return
+
         frame_height, frame_width = frame.shape[:2]
 
         margin_x, margin_y, _, _ = self.get_active_region(frame)

@@ -46,6 +46,12 @@ class GestureEngine:
 
             landmarks = hand["landmarks"]
 
+            index_tip = landmarks[8]
+
+            if self.cursor_controller.calibration.is_active():
+                self.cursor_controller.calibration.current_x = index_tip[1]
+                self.cursor_controller.calibration.current_y = index_tip[2]
+
             fingers = self.detector.fingers_up(hand)
 
             self.handle_open_palm(fingers)
