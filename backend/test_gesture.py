@@ -14,6 +14,7 @@ manager = ModeManager()
 
 engine = GestureEngine(detector, manager)
 
+space_pressed = False
 
 while True:
 
@@ -55,35 +56,46 @@ while True:
             (0, 255, 255),
             2
         )
-
-        cv2.putText(
-            frame,
-            "Move finger to TOP LEFT",
-            (20, 200),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.8,
-            (0, 255, 255),
-            2
-        )
+        if engine.cursor_controller.calibration.current_corner < 4:
+            cv2.putText(
+                frame,
+                f"Move finger to {engine.cursor_controller.calibration.corner_names[engine.cursor_controller.calibration.current_corner]}",
+                (20, 200),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.8,
+                (0, 255, 255),
+                2
+            )
 
     cv2.imshow("NOVA Gesture Test", frame)
 
     key = cv2.waitKey(1) & 0xFF
 
     if key == ord("c"):
+    
+            engine.cursor_controller.calibration.start()
 
-        engine.cursor_controller.calibration.start()
+    elif key == 32:
+        if not space_pressed:
+            calibration = engine.cursor_controller.calibration
 
-    elif key == ord(" "):
+            if calibration.is_active():
 
-        if engine.cursor_controller.calibration.is_active():
+                if (
+                    calibration.current_x is not None
+                    and calibration.current_y is not None
+                ):
 
-            engine.cursor_controller.calibration.save_current_point(
-                engine.cursor_controller.calibration.current_x,
-                engine.cursor_controller.calibration.current_y
-        )
+                    calibration.save_current_point(
+                        calibration.current_x,
+                        calibration.current_y
+                )
+            space_pressed = True
 
-    elif key == ord("q"):
+    else:
+        space_pressed = False    
+
+    if key == ord("q"):
         break
 
 cap.release()

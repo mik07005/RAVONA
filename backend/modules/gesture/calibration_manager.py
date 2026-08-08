@@ -45,7 +45,12 @@ class CalibrationManager:
 
         self.is_calibrating = True
 
+        self.current_corner = 0
+
         self.step = 1
+
+        self.current_x = None
+        self.current_y = None
 
         self.calibration_data = self.default_data.copy()
 
@@ -53,6 +58,12 @@ class CalibrationManager:
 
 
     def save_current_point(self, x, y):
+
+        if not self.is_calibrating:
+            return
+
+        if self.current_corner >= len(self.corner_names):
+            return
 
         key_x, key_y = self.corner_keys[self.current_corner]
 
@@ -64,7 +75,13 @@ class CalibrationManager:
         )
 
         self.current_corner += 1
-    
+
+        if self.current_corner >= len(self.corner_names):
+
+            print("Calibration Complete")
+
+            self.stop()
+
     def stop(self):
 
         self.is_calibrating = False

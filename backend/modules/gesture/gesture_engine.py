@@ -41,35 +41,73 @@ class GestureEngine:
 
 
     def process(self, frame, hands, current_time):
-        
+
+        # ==========================================
+        # CALIBRATION MODE
+        # ==========================================
+
+        if self.cursor_controller.calibration.is_active():
+
+            for hand in hands:
+
+                landmarks = hand["landmarks"]
+
+                if len(landmarks) > 8:
+
+                    index_tip = landmarks[8]
+
+                    self.cursor_controller.calibration.current_x = index_tip[1]
+                    self.cursor_controller.calibration.current_y = index_tip[2]
+
+            return
+
+
+        # ==========================================
+        # NORMAL GESTURE PROCESSING
+        # ==========================================
+
         for hand in hands:
 
             landmarks = hand["landmarks"]
 
-            index_tip = landmarks[8]
-
-            if self.cursor_controller.calibration.is_active():
-                self.cursor_controller.calibration.current_x = index_tip[1]
-                self.cursor_controller.calibration.current_y = index_tip[2]
-
             fingers = self.detector.fingers_up(hand)
 
             self.handle_open_palm(fingers)
+
             self.handle_cursor_mode(fingers)
+
             self.handle_navigation(
                 frame,
                 landmarks,
                 current_time
             )
+
             if self.manager.is_cursor():
-                self.cursor_controller.move_cursor(landmarks, frame)
+
+                self.cursor_controller.move_cursor(
+                    landmarks,
+                    frame
+                )
+
+
+        # ==========================================
+        # DISPLAY CURRENT MODE
+        # ==========================================
+
         mode = "Idle"
 
-        if self.manager.is_navigation():
+        if self.cursor_controller.calibration.is_active():
+
+            mode = "Calibration"
+
+        elif self.manager.is_navigation():
+
             mode = "Navigation"
 
         elif self.manager.is_cursor():
+
             mode = "Cursor"
+
 
         cv2.putText(
             frame,
@@ -79,8 +117,7 @@ class GestureEngine:
             1,
             (0, 255, 0),
             2
-        )    
-
+        )
 
     def handle_open_palm(self, fingers):
 
