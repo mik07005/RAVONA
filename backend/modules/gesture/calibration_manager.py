@@ -87,6 +87,15 @@ class CalibrationManager:
         self.is_calibrating = False
         self.step = 0
 
+        self.calibration_data["calibrated"] = True
+
+        self.config.save_json(
+        "cursor_calibration.json",
+            self.calibration_data
+        )
+
+        print("Calibration Saved")
+
 
     def is_active(self):
 

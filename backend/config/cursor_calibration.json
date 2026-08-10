@@ -1,7 +1,7 @@
 {
-    "calibrated": false,
-    "min_x": null,
-    "max_x": null,
-    "min_y": null,
-    "max_y": null
+    "calibrated": true,
+    "min_x": 440,
+    "max_x": 182,
+    "min_y": 148,
+    "max_y": 253
 }
